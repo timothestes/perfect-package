@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "perfect-package"
-version = "0.1.0"
+version = "0.0.0"
 description = "The best practices I've picked up along the way, all in one place"
 authors = ["timothestes <timothestes@gmail.com>"]
 readme = "README.md"
