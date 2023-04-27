@@ -1,0 +1,21 @@
+perfect\_package package
+========================
+
+Submodules
+----------
+
+perfect\_package.stub module
+----------------------------
+
+.. automodule:: perfect_package.stub
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: perfect_package
+   :members:
+   :undoc-members:
+   :show-inheritance:

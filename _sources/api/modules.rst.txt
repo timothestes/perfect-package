@@ -1,0 +1,7 @@
+perfect_package
+===============
+
+.. toctree::
+   :maxdepth: 4
+
+   perfect_package
