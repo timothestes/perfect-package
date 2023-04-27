@@ -8,7 +8,7 @@ runs:
       shell: bash
 
     - name: Install Poetry
-      uses: snok/install-poetry@latest
+      uses: snok/install-poetry@805b1a2de0a1755197c18756683da2deea7544ea
 
     - name: Setup Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v4
