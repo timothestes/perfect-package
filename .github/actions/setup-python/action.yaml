@@ -1,0 +1,21 @@
+name: "Setup Python and Install Dev Dependencies"
+description: "Installs python, sets up poetry, and installs the dev dependencies"
+runs:
+  using: "composite"
+  steps:
+    - name: Set Python Version
+      run: echo "PYTHON_VERSION=$(cat .python-version)" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Install Poetry
+      uses: snok/install-poetry@latest
+
+    - name: Setup Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: "poetry"
+
+    - name: Install Dev Dependencies
+      run: poetry install --only dev
+      shell: bash

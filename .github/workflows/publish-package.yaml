@@ -1,0 +1,28 @@
+name: Publish Python Package
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-release-to-aws:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: setup python, poetry, and dev dependencies
+        uses: ./.github/actions/setup-python
+
+      - name: Python Semantic Release
+        uses: relekang/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository_username: __token__
+          repository_password: ${{ secrets.PYPI_TOKEN }}

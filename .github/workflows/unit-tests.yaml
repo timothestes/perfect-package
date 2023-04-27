@@ -1,0 +1,87 @@
+name: Run Unit Tests
+on:
+  pull_request: # Run in every PR that touches .py files
+    paths:
+      - '**.py*'
+  workflow_dispatch: # Allow manually triggering the workflow
+  schedule:
+    # Run roughly every 15 days at 00:00 UTC
+    # (useful to check if updates on dependencies break the package)
+    - cron: "0 0 1,16 * *"
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref_type }}-
+    ${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  prepare: # step needed to prepare distribution of package used by the test step
+    runs-on: ubuntu-latest
+    outputs:
+      wheel-distribution: ${{ steps.wheel-distribution.outputs.path }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: setup python, poetry, and dev dependencies
+        uses: ./.github/actions/setup-python
+
+      - name: Build package distribution files
+        run: poetry build
+
+      - name: Record the path of wheel distribution
+        id: wheel-distribution
+        run: echo "path=$(ls dist/*.whl)" >> $GITHUB_OUTPUT
+
+      - name: Store the distribution files for use in other stages
+        # `tests` and `publish` will use the same pre-built distributions,
+        # so we make sure to release the exact same package that was tested
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-distribution-files
+          path: dist/
+          retention-days: 1
+
+  test:
+    needs: prepare
+    strategy:
+      matrix:
+        python: # specify all the versions of python you want to test here
+          - "3.11"
+          # - "3.10"
+          # - "3.8"
+          # - "3.9"
+        platform: # specify all the machines you want to test on
+          - ubuntu-latest
+          # - macos-latest
+          # - windows-latest
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        id: setup-python
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Retrieve pre-built distribution files
+        uses: actions/download-artifact@v3
+        with: { name: python-distribution-files, path: dist/ }
+
+      # since we are using a different runner, we have to install poetry again
+      - name: Install Poetry
+        uses: snok/install-poetry@latest
+
+      - name: Configure Poetry
+        run: |
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.in-project true
+
+      - name: Install package from wheel
+        run: |
+          poetry env use ${{ steps.setup-python.outputs.python-path }}
+          poetry install --no-root
+          poetry run pip install ${{ needs.prepare.outputs.wheel-distribution }}
+
+      - name: Run tests
+        run: poetry run pytest --color yes
